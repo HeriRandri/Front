@@ -1,0 +1,447 @@
+<-------------------------------------------BackEnd-----------------------------------------> : 
+
+const express = require('express');
+const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
+const cors = require('cors');
+
+const app = express();
+app.use(bodyParser.json());
+app.use(cors());
+
+// Connect to MongoDB
+mongoose.connect('mongodb://localhost:27017/auth', { useNewUrlParser: true, useUnifiedTopology: true });
+
+// User schema
+const UserSchema = new mongoose.Schema({
+  username: String,
+  password: String,
+  role: String // 'admin' or 'user'
+});
+
+const User = mongoose.model('User', UserSchema);
+
+// Register route
+app.post('/register', async (req, res) => {
+  const { username, password, role } = req.body;
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const user = new User({ username, password: hashedPassword, role });
+  await user.save();
+  res.status(201).send('User registered');
+});
+
+// Login route
+app.post('/login', async (req, res) => {
+  const { username, password } = req.body;
+  const user = await User.findOne({ username });
+  if (user && await bcrypt.compare(password, user.password)) {
+    const token = jwt.sign({ id: user._id, role: user.role }, 'SECRET_KEY');
+    res.json({ token });
+  } else {
+    res.status(401).send('Invalid credentials');
+  }
+});
+
+// Middleware to verify token
+const verifyToken = (req, res, next) => {
+  const token = req.headers['authorization'];
+  if (token) {
+    jwt.verify(token, 'SECRET_KEY', (err, decoded) => {
+      if (err) {
+        res.status(401).send('Invalid token');
+      } else {
+        req.user = decoded;
+        next();
+      }
+    });
+  } else {
+    res.status(401).send('No token provided');
+  }
+};
+
+// Protected route example
+app.get('/admin', verifyToken, (req, res) => {
+  if (req.user.role === 'admin') {
+    res.send('Welcome admin');
+  } else {
+    res.status(403).send('Access denied');
+  }
+});
+
+app.listen(5000, () => {
+  console.log('Server running on port 5000');
+});
+
+
+<---------------------------------- FrontEnd -------------------------------->
+
+        authService.js : 
+        --------------
+import axios from 'axios';
+
+const API_URL = 'http://localhost:5000';
+
+export const register = async (username, password, role) => {
+  await axios.post(`${API_URL}/register`, { username, password, role });
+};
+
+export const login = async (username, password) => {
+  const response = await axios.post(`${API_URL}/login`, { username, password });
+  if (response.data.token) {
+    localStorage.setItem('user', JSON.stringify(response.data));
+  }
+  return response.data;
+};
+
+export const logout = () => {
+  localStorage.removeItem('user');
+};
+
+export const getCurrentUser = () => {
+  return JSON.parse(localStorage.getItem('user'));
+};
+
+
+        login.js : 
+        ---------
+import React, { useState } from 'react';
+import { login } from './authService';
+
+const Login = () => {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await login(username, password);
+      window.location.href = '/dashboard';
+    } catch (error) {
+      console.error('Failed to login', error);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Username" />
+      <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" />
+      <button type="submit">Login</button>
+    </form>
+  );
+};
+
+export default Login;
+
+
+
+        Dashboard.js : 
+        ---------
+
+import React, { useEffect, useState } from 'react';
+import { getCurrentUser } from './authService';
+import jwtDecode from 'jwt-decode';
+
+const Dashboard = () => {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const user = getCurrentUser();
+    if (user) {
+      const decodedUser = jwtDecode(user.token);
+      setUser(decodedUser);
+    }
+  }, []);
+
+  return (
+    <div>
+      {user ? (
+        <h1>Welcome {user.role === 'admin' ? 'Admin' : 'User'}</h1>
+      ) : (
+        <h1>Please login</h1>
+      )}
+    </div>
+  );
+};
+
+export default Dashboard;
+
+
+        App.js : 
+        ---------
+
+import React from 'react';
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import Login from './Login';
+import Dashboard from './Dashboard';
+
+const App = () => {
+  return (
+    <Router>
+      <Switch>
+        <Route path="/login" component={Login} />
+        <Route path="/dashboard" component={Dashboard} />
+      </Switch>
+    </Router>
+  );
+};
+
+export default App;
+
+
+<----------------Form Basic Signup ----------------------------------->
+
+   
+    // <div className="relative">
+    //   <div className="app-header flex items-center justify-center h-96 flex-col gap-5">
+    //     <h2 className="text-center underline uppercase text-3xl">
+    //       Google New Featuring
+    //     </h2>
+    //     <Button
+    //       type="primary"
+    //       className="p-1 h-10 w-52"
+    //       onClick={() => setSection(true)}
+    //     >
+    //       Sign up
+    //     </Button>
+    //   </div>
+    //   {section && (
+    //     <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-black bg-opacity-50 z-20">
+    //       <div className="p-5 relative bg-white rounded-lg">
+    //         <div
+    //           className="btn btn-close absolute top-2 right-2 cursor-pointer"
+    //           onClick={() => setSection(false)}
+    //         >
+    //           <MdClose />
+    //         </div>
+    //         <form className="flex flex-col gap-2" onSubmit={handleSubmit}>
+    //           <label htmlFor="username">Username</label>
+    //           <input
+    //             type="text"
+    //             name="username"
+    //             className="rounded-md border h-10"
+    //             onChange={handleChange}
+    //           />
+    //           <label htmlFor="email">Email</label>
+    //           <input
+    //             name="email"
+    //             type="text"
+    //             className="rounded-md border h-10"
+    //             onChange={handleChange}
+    //           />
+    //           <label htmlFor="password">Password</label>
+    //           <input
+    //             type="password"
+    //             name="password"
+    //             className="rounded-md border h-10"
+    //             onChange={handleChange}
+    //           />
+    //           <div className="erreur"></div>
+    //           <div className="flex justify-center items-center flex-col gap-2">
+    //             <button className="h-8 mt-5 w-20">Signup</button>
+    //             <p className="text-xs text-center">
+    //               Already have an account?{" "}
+    //               <a href="/login" className="text-blue-600">
+    //                 Sign in
+    //               </a>
+    //             </p>
+    //           </div>
+    //         </form>
+    //       </div>
+    //     </div>
+    //   )}
+    // </div>
+
+
+article.jsx:
+
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { Modal, Menu, Card, Row, Col, Button, Spin } from "antd";
+import {
+  HomeOutlined,
+  LaptopOutlined,
+  TrophyOutlined,
+  GlobalOutlined,
+  ExperimentOutlined,
+  HeartOutlined,
+} from "@ant-design/icons";
+
+export default function Article() {
+  const [showUpgrade, setShowUpgrade] = useState(false);
+  const [articles, setArticles] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const fetchArticles = async (category) => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      Modal.error({
+        content: "Token not found. Please log in.",
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await axios.get(`/articles?category=${category}`, {
+        headers: { authorization: `Bearer ${token}` },
+      });
+      setArticles(res.data);
+      setError(null);
+    } catch (error) {
+      console.error(`Error fetching articles: ${error}`);
+      setError(error);
+      if (error.response && error.response.status === 401) {
+        Modal.error({
+          content: "Accès non autorisé. Veuillez vous reconnecter.",
+        });
+      } else {
+        Modal.error({
+          content: `Failed to load articles. Server responded with: ${error.message}`,
+        });
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchArticles("home");
+  }, []);
+
+  const handleUpgrade = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      Modal.error({
+        content: "Token not found. Please log in.",
+      });
+      return;
+    }
+
+    try {
+      await axios.post(
+        "/devenir-admin",
+        {},
+        {
+          headers: { authorization: `Bearer ${token}` },
+        }
+      );
+      setShowUpgrade(false);
+      Modal.success({
+        content: "Successfully upgraded to VIP.",
+      });
+    } catch (error) {
+      console.error(`Error upgrading to VIP: ${error}`);
+      Modal.error({
+        content: "Upgrade failed. Please try again.",
+      });
+    }
+  };
+
+  const handleMenuClick = (e) => {
+    const category = e.key;
+    console.log(`Selected category: ${category}`);
+    if (category === "world" || category === "health") {
+      setShowUpgrade(true);
+      return;
+    }
+    fetchArticles(category);
+  };
+
+  const menuItems = [
+    { key: "home", label: "Home", icon: <HomeOutlined /> },
+    { key: "technology", label: "Technology", icon: <LaptopOutlined /> },
+    { key: "sport", label: "Sport", icon: <TrophyOutlined /> },
+    { key: "world", label: "World", icon: <GlobalOutlined /> },
+    { key: "science", label: "Science", icon: <ExperimentOutlined /> },
+    { key: "health", label: "Health", icon: <HeartOutlined /> },
+  ];
+
+  return (
+    <div>
+      <nav className="mt-10 max-w-7xl mx-auto shadow-lg border-b-2 rounded-lg h-10">
+        <Menu
+          mode="horizontal"
+          style={{ display: "flex", justifyContent: "center" }}
+          onClick={handleMenuClick}
+        >
+          {menuItems.map((item) => (
+            <Menu.Item key={item.key} icon={item.icon}>
+              {item.label}
+            </Menu.Item>
+          ))}
+        </Menu>
+      </nav>
+      {showUpgrade && (
+        <Modal
+          title="Upgrade to VIP"
+          visible={showUpgrade}
+          onOk={handleUpgrade}
+          onCancel={() => setShowUpgrade(false)}
+        >
+          <p>To access World and Health categories, please upgrade to VIP.</p>
+          <Button type="primary" onClick={handleUpgrade}>
+            Upgrade to VIP
+          </Button>
+        </Modal>
+      )}
+      <div className="container mt-10 max-w-7xl mx-auto">
+        {loading ? (
+          <Spin size="large" />
+        ) : error ? (
+          <div className="error">{error.message}</div>
+        ) : (
+          <Row gutter={[16, 16]}>
+            {articles.map((article, index) => (
+              <Col key={index} xs={24} sm={12} md={8} lg={6}>
+                <Card
+                  hoverable
+                  cover={
+                    article.multimedia && article.multimedia.length > 0 ? (
+                      <img
+                        alt={article.multimedia[0].caption}
+                        src={article.multimedia[0].url}
+                        style={{
+                          width: "100%",
+                          height: "200px",
+                          objectFit: "cover",
+                        }}
+                      />
+                    ) : null
+                  }
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "space-between",
+                      height: "100%",
+                    }}
+                  >
+                    <div>
+                      <h3 className="text-blue-400 font-bold">{article.title}</h3>
+                      <p className="italic">{article.abstract}</p>
+                    </div>
+                    <div>
+                      <p>
+                        <em>{article.byline}</em>
+                      </p>
+                      <a
+                        href={article.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-400"
+                      >
+                        Lire plus
+                      </a>
+                    </div>
+                  </div>
+                </Card>
+              </Col>
+            ))}
+          </Row>
+        )}
+      </div>
+    </div>
+  );
+}

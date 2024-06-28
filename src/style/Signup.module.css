@@ -1,0 +1,7 @@
+.navbar {
+    @apply lg:bg-black text-gray-100 max-w-5xl mx-auto font-sans p-2 flex items-center justify-between shadow-lg shadow-slate-900/60 border-b-2 rounded-b-lg md:bg-green-400 sm:flex  sm:top-0 lg:flex lg:flex-row  md:flex md:flex-row;
+  } 
+  .card_upgrade{
+    @apply bg-black text-white w-60;
+    
+  }

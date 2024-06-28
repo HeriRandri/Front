@@ -1,0 +1,541 @@
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { NavLink } from "react-router-dom";
+import { Modal, Menu, Card, Row, Col, Button, Spin } from "antd";
+import {
+  HomeOutlined,
+  LaptopOutlined,
+  TrophyOutlined,
+  GlobalOutlined,
+  ExperimentOutlined,
+  HeartOutlined,
+} from "@ant-design/icons";
+
+export default function World() {
+  const [articles, setArticles] = useState([]);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false); // État pour afficher la modal de mise à niveau
+  const [isVIP, setIsVIP] = useState(false); // État pour vérifier si l'utilisateur est VIP
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    // Fonction pour vérifier le statut VIP de l'utilisateur
+    const checkVIPStatus = async () => {
+      const token = localStorage.getItem("token");
+      try {
+        const response = await axios.get("/isVIP", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setIsVIP(response.data.isVIP);
+      } catch (error) {
+        console.error("Error checking VIP status:", error);
+      }
+    };
+
+    checkVIPStatus();
+  }, []);
+
+  // Fonction pour gérer le clic sur le menu
+  const handleClickMenu = (e) => {
+    const category = e.key;
+    fetchArticles(category);
+  };
+
+  // Fonction pour récupérer les articles en fonction de la catégorie
+  const fetchArticles = async (category) => {
+    const token = localStorage.getItem("token");
+    setLoading(true);
+    try {
+      const res = await axios.get(`/articles?category=${category}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setArticles(res.data);
+      setError(null);
+    } catch (error) {
+      setError(error);
+      if (error.response && error.response.status === 401) {
+        Modal.error({
+          content: "Accès non autorisé. Veuillez vous reconnecter.",
+        });
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fonction pour gérer le clic sur le bouton de mise à niveau
+  const handleUpgrade = async () => {
+    const token = localStorage.getItem("token");
+    try {
+      await axios.post(
+        "/devenir-admin",
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      // Mettre à jour le statut VIP après la mise à niveau réussie
+      setIsVIP(true);
+      setShowUpgradeModal(false); // Cacher la modal après la mise à niveau
+      Modal.success({
+        content: "Successfully upgraded to VIP.",
+      });
+    } catch (error) {
+      Modal.error({
+        content: "Upgrade failed. Please try again.",
+      });
+    }
+  };
+
+  return (
+    <div>
+      <nav className="mt-10 max-w-7xl mx-auto shadow-lg border-b-2 rounded-lg h-10">
+        <Menu
+          mode="horizontal"
+          style={{ display: "flex", justifyContent: "center" }}
+          onClick={handleClickMenu}
+        >
+          {/* Vos éléments de menu */}
+        </Menu>
+      </nav>
+
+      {/* Affichage des articles */}
+      <div className="container mt-10 max-w-7xl mx-auto">
+        {loading ? (
+          <div className="spin_container flex justify-center items-center h-80">
+            <Spin size="large" />
+          </div>
+        ) : error ? (
+          <div className="error_container flex justify-center items-center h-80">
+            <p className="text-red-800 text-3xl font-bold">{error.message}</p>
+          </div>
+        ) : (
+          <Row gutter={[16, 16]}>
+            {articles.map((article, index) => (
+              <Col key={index} xs={24} sm={12} md={8} lg={6}>
+                <Card
+                  hoverable
+                  cover={
+                    article.multimedia && article.multimedia.length > 0 ? (
+                      <img
+                        alt={article.multimedia[0].caption}
+                        src={article.multimedia[0].url}
+                        style={{
+                          width: "100%",
+                          height: "200px",
+                          objectFit: "cover",
+                        }}
+                      />
+                    ) : null
+                  }
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "space-between",
+                      height: "100%",
+                    }}
+                  >
+                    <div>
+                      <h3>{article.title}</h3>
+                      <p>{article.abstract}</p>
+                    </div>
+                    <div>
+                      <p>
+                        <em>{article.byline}</em>
+                      </p>
+                      <a
+                        href={article.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Lire plus
+                      </a>
+                    </div>
+                  </div>
+                </Card>
+              </Col>
+            ))}
+          </Row>
+        )}
+      </div>
+
+      {/* Modal pour la mise à niveau vers VIP */}
+      {!isVIP && (
+        <Modal
+          title="Upgrade to VIP"
+          visible={showUpgradeModal}
+          onCancel={() => setShowUpgradeModal(false)}
+          footer={[
+            <Button key="cancel" onClick={() => setShowUpgradeModal(false)}>
+              Cancel
+            </Button>,
+            <Button key="upgrade" type="primary" onClick={handleUpgrade}>
+              Upgrade
+            </Button>,
+          ]}
+        >
+          <p>You need to upgrade to VIP to access this content.</p>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+
+-----------------------------------------------------------------------
+
+autre methode
+
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { NavLink } from "react-router-dom";
+import { Modal, Menu, Card, Row, Col, Button, Spin } from "antd";
+import {
+  HomeOutlined,
+  LaptopOutlined,
+  TrophyOutlined,
+  GlobalOutlined,
+  ExperimentOutlined,
+  HeartOutlined,
+} from "@ant-design/icons";
+
+export default function World() {
+  const [articles, setArticles] = useState([]);
+  const [showUpgrade, setShowUpgrade] = useState(false);
+  const [selectCategory, setSelectCategory] = useState("world");
+  const [role, setRole] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [isVip, setIsVip] = useState(false); // Etat pour vérifier si l'utilisateur est VIP
+
+  useEffect(() => {
+    // Fonction asynchrone pour récupérer le rôle de l'utilisateur depuis le backend
+    const fetchRole = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await axios.get("/userL", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const userRole = response.data.data.role[0];
+        setIsVip(userRole === "admin"); // Met à jour l'état isVip en fonction du rôle récupéré
+      } catch (error) {
+        console.error("Error fetching user role:", error);
+        // Gérer les erreurs de récupération du rôle utilisateur
+      }
+    };
+
+    fetchRole(); // Appel de la fonction au chargement initial du composant
+  }, []);
+
+  const fetchArticles = async (category) => {
+    const token = localStorage.getItem("token");
+    setLoading(true);
+    try {
+      const res = await axios.get(`/articles?category=${category}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setArticles(res.data);
+      setError(null);
+    } catch (error) {
+      setError(error);
+      if (error.response && error.response.status === 401) {
+        Modal.error({
+          content: "Accès non autorisé. Veuillez vous reconnecter.",
+        });
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpgrade = async () => {
+    const token = localStorage.getItem("token");
+    setShowUpgrade(false);
+    try {
+      const res = await axios.post(
+        "/devenir-admin",
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      console.log(res.data);
+      setIsVip(true); // Mettre à jour l'état pour indiquer que l'utilisateur est maintenant VIP
+    } catch (error) {
+      Modal.error({
+        content: "Upgrade failed. Please try again.",
+      });
+    }
+  };
+
+  const handleClickMenu = (e) => {
+    const category = e.key;
+    setSelectCategory(category);
+    fetchArticles(category); // Appel de fetchArticles lorsque l'utilisateur clique sur un élément du menu
+  };
+
+  const menuItems = [
+    { key: "home", label: "Home", icon: <HomeOutlined />, link: "/home" },
+    {
+      key: "technology",
+      label: "Technology",
+      icon: <LaptopOutlined />,
+      link: "/technology",
+    },
+    { key: "sport", label: "Sport", icon: <TrophyOutlined />, link: "/sport" },
+    { key: "world", label: "World", icon: <GlobalOutlined />, link: "/world" },
+    {
+      key: "science",
+      label: "Science",
+      icon: <ExperimentOutlined />,
+      link: "/science",
+    },
+    {
+      key: "health",
+      label: "Health",
+      icon: <HeartOutlined />,
+      link: "/health",
+    },
+  ];
+
+  return (
+    <div>
+      <nav className="mt-10 max-w-7xl mx-auto shadow-lg border-b-2 rounded-lg h-10">
+        <Menu
+          mode="horizontal"
+          style={{ display: "flex", justifyContent: "center" }}
+          onClick={handleClickMenu}
+        >
+          {menuItems.map((item) => (
+            <Menu.Item key={item.key} icon={item.icon}>
+              <NavLink to={item.link}>{item.label}</NavLink>
+            </Menu.Item>
+          ))}
+        </Menu>
+      </nav>
+
+      {!isVip ? (
+        <Modal
+          title="UPGRADE YOUR PLAN"
+          visible={!isVip && selectCategory === "world"} // Afficher le modal uniquement lorsque selectCategory est "world" et !isVip
+          onCancel={() => setShowUpgrade(false)}
+          footer={[
+            <Button key="upgrade" type="primary" onClick={handleUpgrade}>
+              Upgrade to VIP
+            </Button>,
+          ]}
+        >
+          <p>
+            You need to upgrade to VIP to access this content. Click the button
+            below to upgrade.
+          </p>
+        </Modal>
+      ) : (
+        <div className="container mt-10 max-w-7xl mx-auto">
+          {loading ? (
+            <div className="spin_container flex justify-center items-center h-80">
+              <Spin size="large" />
+            </div>
+          ) : error ? (
+            <div className="error_container flex justify-center items-center h-80">
+              <p className="text-red-800 text-3xl font-bold">{error.message}</p>
+            </div>
+          ) : (
+            <Row gutter={[16, 16]}>
+              {articles.map((article, index) => (
+                <Col key=
+
+
+      afficher directement le modal 
+
+      NavBar.jsx
+      import { useState } from "react";
+import { Menu, Button, Modal } from "antd";
+import { HomeOutlined, LoginOutlined, UserOutlined } from "@ant-design/icons";
+import Sign_up from "./Sign_up"; // Assurez-vous que le chemin vers votre composant Sign_up est correct
+
+const Navbar = () => {
+  const [showSignUpModal, setShowSignUpModal] = useState(false);
+  const [showSignInModal, setShowSignInModal] = useState(false);
+
+  const handleSignUpClick = () => {
+    setShowSignUpModal(true);
+  };
+
+  const handleSignInClick = () => {
+    setShowSignInModal(true);
+  };
+
+  const handleSignUpModalClose = () => {
+    setShowSignUpModal(false);
+  };
+
+  const handleSignInModalClose = () => {
+    setShowSignInModal(false);
+  };
+
+  const menuItems = [
+    { key: "home", label: "Home", icon: <HomeOutlined />, link: "/" },
+    {
+      key: "signup",
+      label: "SignUp",
+      icon: <UserOutlined />,
+      onClick: handleSignUpClick,
+    },
+    {
+      key: "login",
+      label: "SignIn",
+      icon: <LoginOutlined />,
+      onClick: handleSignInClick,
+    },
+  ];
+
+  return (
+    <nav className="navbar">
+      <div className="flex items-center rounded-md md:w-10 md:text-xl">
+        <Button type="" xs={10} className="sm:w-36">
+          <a href="/" className="sm:text-sm text-center">
+            Google News
+          </a>
+        </Button>
+      </div>
+      <Menu
+        mode="horizontal"
+        style={{
+          display: "flex",
+          justifyContent: "end",
+          borderRadius: "10px",
+          alignItems: "center",
+          height: "35px",
+        }}
+      >
+        {menuItems.map((item) =>
+          item.onClick ? (
+            <Menu.Item key={item.key} icon={item.icon} onClick={item.onClick}>
+              {item.label}
+            </Menu.Item>
+          ) : (
+            <div className="sm:w-5 lg:w-40 md:w-8">
+              <Menu.Item key={item.key} icon={item.icon}>
+                <a href="#" style={{ color: "red" }}>
+                  {item.label}
+                </a>
+              </Menu.Item>
+            </div>
+          )
+        )}
+      </Menu>
+
+      <Modal
+        visible={showSignUpModal}
+        onCancel={handleSignUpModalClose}
+        footer={null}
+        width={400}
+      >
+        <Sign_up onSuccess={() => setShowSignInModal(true)} />
+      </Modal>
+
+      <Modal
+        visible={showSignInModal}
+        onCancel={handleSignInModalClose}
+        footer={null}
+        width={400}
+      >
+        {/* Insérez ici votre composant SignIn */}
+        <div>SignIn Modal Content</div>
+      </Modal>
+    </nav>
+  );
+};
+
+export default Navbar;
+
+
+siginni
+
+import { useState } from "react";
+import { Form, Input, Button, Modal, Spin } from "antd";
+import axios from "axios";
+
+const Sign_up = ({ onSuccess }) => {
+  axios.defaults.baseURL = "http://localhost:4000/";
+  const [loading, setLoading] = useState(false);
+  const [form] = Form.useForm();
+
+  const handleSignUp = async (values) => {
+    setLoading(true);
+    try {
+      const res = await axios.post("/signup", values);
+      if (res.data) {
+        Modal.success({ content: "Sign Up Successful" });
+        onSuccess(); // Appeler la fonction onSuccess pour afficher le modal SignIn après SignUp
+        form.resetFields(); // Réinitialiser les champs du formulaire après SignUp réussi
+      }
+    } catch (error) {
+      setLoading(false);
+      if (error.response) {
+        if (error.response.status === 409) {
+          Modal.error({ content: "That email is already registered." });
+        } else {
+          Modal.error({
+            content: "An error occurred. Please try again later.",
+          });
+        }
+      } else {
+        Modal.error({
+          content: "An error occurred. Please check your network connection.",
+        });
+      }
+    }
+  };
+
+  return (
+    <Form form={form} onFinish={handleSignUp} className="sign-up-form">
+      <Form.Item
+        name="username"
+        label="Username"
+        rules={[{ required: true, message: "Please enter your username" }]}
+      >
+        <Input placeholder="Username" />
+      </Form.Item>
+      <Form.Item
+        name="email"
+        label="Email Address"
+        rules={[
+          { required: true, message: "Please enter your email address" },
+          { type: "email", message: "Please enter a valid email address" },
+        ]}
+      >
+        <Input placeholder="Email" />
+      </Form.Item>
+      <Form.Item
+        name="password"
+        label="Password"
+        rules={[
+          { required: true, message: "Please enter your password" },
+          {
+            min: 8,
+            message: "Password must be at least 8 characters long",
+          },
+        ]}
+      >
+        <Input.Password placeholder="Password" />
+      </Form.Item>
+      <Form.Item>
+        <Button type="primary" htmlType="submit" loading={loading}>
+          Sign Up
+        </Button>
+        <p className="text-gray-600 text-xs">
+          Already have an account?{" "}
+          <a href="#" onClick={() => onSuccess()}>
+            Sign In
+          </a>
+        </p>
+      </Form.Item>
+    </Form>
+  );
+};
+
+export default Sign_up;

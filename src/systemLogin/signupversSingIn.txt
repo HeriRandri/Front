@@ -1,0 +1,302 @@
+app.jsx:
+
+import { useState } from "react";
+import Navbar from "./Navbar";
+import Login from "./Login";
+import SignUp from "./SignUp";
+
+export default function App() {
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showSignUpModal, setShowSignUpModal] = useState(false);
+
+  const handleSignUpSuccess = () => {
+    setShowSignUpModal(false);
+    setShowLoginModal(true);
+  };
+
+  return (
+    <>
+      <Navbar setShowLoginModal={setShowLoginModal} setShowSignUpModal={setShowSignUpModal} />
+      <Login showModal={showLoginModal} setShowModal={setShowLoginModal} />
+      <SignUp showModal={showSignUpModal} setShowModal={setShowSignUpModal} onSignUpSuccess={handleSignUpSuccess} />
+    </>
+  );
+}
+
+
+------------------------------------------
+
+Navbar.jsx
+
+import { Menu, Modal } from "antd";
+import { HomeOutlined, LoginOutlined, UserOutlined } from "@ant-design/icons";
+import style from "../style/Signup.module.css";
+
+export default function Navbar({ setShowLoginModal, setShowSignUpModal }) {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      setIsLoggedIn(true);
+    }
+  }, []);
+
+  const handleLogout = () => {
+    Modal.info({ content: "logout" });
+    localStorage.removeItem("token");
+    setIsLoggedIn(false);
+
+    Modal.info({ content: "logout" });
+
+    setTimeout(() => {
+      location.assign("/login");
+    }, 5000);
+  };
+
+  const menuItems = isLoggedIn
+    ? [
+        {
+          key: "logout",
+          label: "Logout",
+          icon: <LoginOutlined />,
+          onClick: handleLogout,
+        },
+      ]
+    : [
+        { key: "home", label: "Home", icon: <HomeOutlined />, link: "/" },
+        {
+          key: "signup",
+          label: "SignUp",
+          icon: <UserOutlined />,
+          onClick: () => setShowSignUpModal(true),
+        },
+        {
+          key: "login",
+          label: "SignIn",
+          icon: <LoginOutlined />,
+          onClick: () => setShowLoginModal(true),
+        },
+      ];
+
+  return (
+    <nav className={style.navbar}>
+      <div className="flex items-center rounded-md md:w-10 md:text-xl">
+        <a href="/" className="ant-btn">
+          Google News
+        </a>
+      </div>
+      <Menu
+        mode="horizontal"
+        style={{
+          display: "flex",
+          justifyContent: "end",
+          borderRadius: "10px",
+          alignItems: "center",
+          height: "35px",
+        }}
+      >
+        {menuItems.map((item) =>
+          item.onClick ? (
+            <Menu.Item key={item.key} icon={item.icon} onClick={item.onClick}>
+              {item.label}
+            </Menu.Item>
+          ) : (
+            <Menu.Item key={item.key} icon={item.icon}>
+              <a href={item.link}>{item.label}</a>
+            </Menu.Item>
+          )
+        )}
+      </Menu>
+    </nav>
+  );
+}
+
+-------------------------------------------------
+
+Login.jsx:
+
+import { Button, Form, Input, Modal } from "antd";
+import axios from "axios";
+
+export default function Login({ showModal, setShowModal }) {
+  axios.defaults.baseURL = "http://localhost:4000/";
+
+  const [form] = Form.useForm();
+
+  const handleLogin = async (values) => {
+    try {
+      const response = await axios.post("/login", values, {
+        withCredentials: true,
+      });
+      if (response.data.auth) {
+        localStorage.setItem("token", response.data.accessToken);
+        Modal.success({ content: "Login successfully" });
+        setTimeout(() => {
+          location.assign("/articles");
+        }, 3000);
+      }
+    } catch (error) {
+      Modal.error({ content: error.response.data });
+    }
+  };
+
+  return (
+    <div className="relative">
+      <Modal
+        className="h-80 w-44"
+        visible={showModal}
+        onCancel={() => setShowModal(false)}
+        footer={null}
+      >
+        <Form form={form} onFinish={handleLogin} className="m-5">
+          <Form.Item name="email" label="Email">
+            <Input />
+          </Form.Item>
+          <Form.Item name="password" label="Password">
+            <Input.Password />
+          </Form.Item>
+
+          <div className="flex">
+            <Form.Item>
+              <Button type="primary" htmlType="submit">
+                Login
+              </Button>
+              <p className="text-gray-600 text-xs">
+                You do not have an account{" "}
+                <a href="/signup" className="text-blue-700">
+                  SignUp
+                </a>
+              </p>
+            </Form.Item>
+            <Button
+              href="/reset"
+              style={{ color: "red", marginLeft: "160px" }}
+              className="text-red right-0"
+            >
+              Reset
+            </Button>
+          </div>
+        </Form>
+      </Modal>
+    </div>
+  );
+}
+
+-----------------------------------------------------------------------------
+
+signup.jsx:
+
+import { Button, Form, Input, Modal } from "antd";
+import axios from "axios";
+
+const SignUp = ({ showModal, setShowModal, onSignUpSuccess }) => {
+  axios.defaults.baseURL = "http://localhost:4000/";
+  const [form] = Form.useForm();
+
+  const handleSignUp = async (values) => {
+    try {
+      const res = await axios.post("/signup", values);
+      if (res.data) {
+        Modal.success({ content: "Sign Up Successful" });
+
+        setTimeout(() => {
+          onSignUpSuccess();
+        }, 3000);
+      }
+    } catch (error) {
+      if (error.response) {
+        if (error.response.status === 409) {
+          Modal.error({ content: "That email is already registered." });
+        } else {
+          Modal.error({
+            content: "An error occurred. Please try again later.",
+          });
+        }
+      } else {
+        Modal.error({
+          content: "An error occurred. Please check your network connection.",
+        });
+      }
+    }
+  };
+
+  return (
+    <div className="relative">
+      <Modal
+        visible={showModal}
+        onCancel={() => setShowModal(false)}
+        footer={null}
+        width={400}
+      >
+        <Form form={form} onFinish={handleSignUp} className="m-5">
+          <Form.Item
+            name="username"
+            label="Username"
+            labelCol={{ span: 8 }}
+            wrapperCol={{ span: 16 }}
+            rules={[{ required: true, message: "Please enter your username" }]}
+          >
+            <Input className="border-t-0" placeholder="username" />
+          </Form.Item>
+          <Form.Item
+            name="email"
+            label="Email Address"
+            className="flex flex-row items-center mb-4"
+            labelCol={{ span: 8 }}
+            wrapperCol={{ span: 16 }}
+            labelAlign="left"
+            rules={[
+              { required: true, message: "Please enter your email address" },
+              { type: "email", message: "Please enter a valid email address" },
+            ]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="password"
+            label="Password"
+            className="flex flex-row items-center mb-4"
+            labelCol={{ span: 8 }}
+            wrapperCol={{ span: 16 }}
+            rules={[
+              { required: true, message: "Please enter your password" },
+              {
+                min: 8,
+                message: "Password must be at least 8 characters long",
+              },
+              {
+                pattern:
+                  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/,
+                message:
+                  "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character",
+              },
+            ]}
+          >
+            <Input.Password />
+          </Form.Item>
+          <Form.Item className="flex justify-center">
+            <Button type="primary" htmlType="submit">
+              SignUp
+            </Button>
+            <p className="text-gray-600 text-xs">
+              You have an account{" "}
+              <a
+                href="#"
+                onClick={() => {
+                  setShowModal(false);
+                  onSignUpSuccess();
+                }}
+                className="text-blue-700"
+              >
+                SignIn
+              </a>
+            </p>
+          </Form.Item>
+        </Form>
+      </Modal>
+    </div>
+  );
+};
+
+export default SignUp;
