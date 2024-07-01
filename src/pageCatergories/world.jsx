@@ -86,7 +86,6 @@ export default function World() {
   });
 
   const handleClickMenu = async (e) => {
-    alert("test world");
     const category = e.key;
 
     // setSelectCategory(category);

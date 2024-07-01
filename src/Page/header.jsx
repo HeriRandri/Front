@@ -1,6 +1,4 @@
 import { Button, Spin } from "antd";
-import LoginButton from "../PageTest/LoginButton";
-import LogoutButton from "../PageTest/logoutButton";
 
 export default function Header() {
   return (
@@ -13,8 +11,8 @@ export default function Header() {
           <Button type="">
             <a href="/signup">Get Started</a>
           </Button>
-          <LoginButton />
-          <LogoutButton />
+          {/* <LoginButton />
+          <LogoutButton /> */}
         </div>
         <footer className="flex justify-end items-center flex-col gap-2 ">
           <p>Copyright 2024 Nandrianina Dev</p>

@@ -1,6 +1,6 @@
 /* eslint-disable react/jsx-key */
 import { useState, useEffect, useContext } from "react";
-import { Menu, Button, Modal } from "antd";
+import { Menu, Button } from "antd";
 // import { useNavigate, NavLink } from "react-router-dom";
 import { HomeOutlined, LoginOutlined, UserOutlined } from "@ant-design/icons";
 import style from "../style/Signup.module.css";
@@ -19,17 +19,17 @@ export default function Navbar() {
     await logout();
   };
 
-  const jwtLogout = () => {
-    localStorage.removeItem("token");
-    location.assign("/login");
-  };
+  // const jwtLogout = () => {
+  //   localStorage.removeItem("token");
+  //   location.assign("/login");
+  // };
   const menuItems = isLoggedIn
     ? [
         {
           key: "logout",
           label: "Logout",
           icon: <LoginOutlined />,
-          onClick: jwtLogout,
+          onClick: handleLogout,
         },
       ]
     : [
@@ -47,12 +47,12 @@ export default function Navbar() {
           link: "/login",
         },
 
-        {
-          key: "login",
-          label: "SignInTest",
-          icon: <LoginOutlined />,
-          link: "/loginTest",
-        },
+        // {
+        //   key: "login",
+        //   label: "SignInTest",
+        //   icon: <LoginOutlined />,
+        //   link: "/loginTest",
+        // },
       ];
 
   return (
