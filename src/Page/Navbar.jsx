@@ -1,15 +1,19 @@
 /* eslint-disable react/jsx-key */
 import { useState, useEffect, useContext } from "react";
-import { Menu, Button } from "antd";
-// import { useNavigate, NavLink } from "react-router-dom";
-import { HomeOutlined, LoginOutlined, UserOutlined } from "@ant-design/icons";
+import { Menu, Button, Drawer } from "antd";
+import {
+  HomeOutlined,
+  LoginOutlined,
+  UserOutlined,
+  MenuOutlined,
+} from "@ant-design/icons";
 import style from "../style/Signup.module.css";
 import { AuthContext } from "./AuthePrivder";
 
 export default function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const { user, logout } = useContext(AuthContext);
-  // const navigate = useNavigate();
+  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     setIsLoggedIn(!!user);
@@ -19,10 +23,6 @@ export default function Navbar() {
     await logout();
   };
 
-  // const jwtLogout = () => {
-  //   localStorage.removeItem("token");
-  //   location.assign("/login");
-  // };
   const menuItems = isLoggedIn
     ? [
         {
@@ -46,14 +46,15 @@ export default function Navbar() {
           icon: <LoginOutlined />,
           link: "/login",
         },
-
-        // {
-        //   key: "login",
-        //   label: "SignInTest",
-        //   icon: <LoginOutlined />,
-        //   link: "/loginTest",
-        // },
       ];
+
+  const showDrawer = () => {
+    setVisible(true);
+  };
+
+  const onClose = () => {
+    setVisible(false);
+  };
 
   return (
     <nav className={style.navbar}>
@@ -64,13 +65,13 @@ export default function Navbar() {
           </a>
         </Button>
       </div>
+
+      {/* Menu horizontal pour les écrans larges */}
       <Menu
         mode="horizontal"
+        className="hidden sm:flex justify-end rounded-md items-center h-10"
         style={{
-          display: "flex",
-          justifyContent: "end",
           borderRadius: "10px",
-          alignItems: "center",
           height: "35px",
         }}
       >
@@ -90,6 +91,39 @@ export default function Navbar() {
           )
         )}
       </Menu>
+
+      {/* Menu hamburger pour les écrans petits */}
+      <div className="sm:hidden">
+        <Button type="text" onClick={showDrawer}>
+          <MenuOutlined />
+        </Button>
+        <Drawer
+          title="Menu"
+          placement="right"
+          closable={false}
+          onClose={onClose}
+          visible={visible}
+          key="right"
+        >
+          <Menu theme="light" mode="inline">
+            {menuItems.map((item) =>
+              item.onClick ? (
+                <Menu.Item
+                  key={item.key}
+                  icon={item.icon}
+                  onClick={item.onClick}
+                >
+                  {item.label}
+                </Menu.Item>
+              ) : (
+                <Menu.Item key={item.key} icon={item.icon}>
+                  <a href={item.link}>{item.label}</a>
+                </Menu.Item>
+              )
+            )}
+          </Menu>
+        </Drawer>
+      </div>
     </nav>
   );
 }

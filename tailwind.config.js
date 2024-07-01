@@ -4,9 +4,9 @@ export default {
   theme: {
     extend: {},
     screens: {
-      sm: "680px",
-      md: "968px",
-      lg: "1076px",
+      sm: "480px",
+      md: "768px",
+      lg: "976px",
       xl: "1440px",
     },
     plugins: [],
