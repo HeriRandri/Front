@@ -3,7 +3,7 @@ import axios from "axios";
 import { useState } from "react";
 
 export default function Login() {
-  axios.defaults.baseURL = "http://localhost:4000/";
+  axios.defaults.baseURL = "https://backfichier.onrender.com/";
 
   const [showModal, setShowModal] = useState(false);
   const [form] = Form.useForm();
@@ -13,6 +13,7 @@ export default function Login() {
       const response = await axios.put("/reset", values, {
         withCredentials: true,
       });
+      console.log("salut");
 
       if (response.data.success) {
         // localStorage.setItem("token", response.data.accessToken);

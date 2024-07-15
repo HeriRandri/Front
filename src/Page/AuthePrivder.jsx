@@ -5,7 +5,7 @@ import { Modal } from "antd";
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  axios.defaults.baseURL = "http://localhost:4000/";
+  axios.defaults.baseURL = "https://backfichier.onrender.com/";
 
   const [user, setUser] = useState(null);
 
@@ -27,8 +27,12 @@ export const AuthProvider = ({ children }) => {
         { email, password },
         { withCredentials: true }
       );
-      setUser(response.data.user);
-      Modal.success({ content: "Login successful" });
+
+      if (response.data.auth) {
+        setUser(response.data.user);
+        Modal.success({ content: "Login successful" });
+        location.assign("/home");
+      }
     } catch (error) {
       Modal.error({ content: error.response.data });
     }
@@ -38,6 +42,7 @@ export const AuthProvider = ({ children }) => {
     try {
       await axios.post("/logout", {}, { withCredentials: true });
       setUser(null);
+      Modal.confirm({ content: "Voulez vous deconnecter ?" });
       location.assign("/login");
     } catch (error) {
       Modal.error({ content: "failed de logout" });

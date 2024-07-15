@@ -26,6 +26,7 @@ export default function Tech() {
           // headers: { Authorization: `Bearer ${token}` },
         });
         setArticles(res.data);
+
         setError(null);
       } catch (error) {
         if (error.response && error.response.status === 401) {
@@ -35,6 +36,7 @@ export default function Tech() {
             content: "Accès non autorisé. Veuillez vous reconnecter.",
           });
         } else if (error.response && error.response.status === 500) {
+          console.log("test");
           setError(error);
           setLoading(false);
           // Modal.error({

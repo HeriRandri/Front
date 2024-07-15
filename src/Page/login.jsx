@@ -5,7 +5,7 @@ import { AuthContext } from "./AuthePrivder";
 import { useAuth0 } from "@auth0/auth0-react";
 
 export default function Login() {
-  axios.defaults.baseURL = "http://localhost:4000/";
+  axios.defaults.baseURL = "https://backfichier.onrender.com/";
 
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -32,11 +32,11 @@ export default function Login() {
       // }
       // setError(null);
       await login(values.email, values.password);
-      await setLoading(false);
+      setLoading(false);
 
       setError(null);
       setLoad(false);
-      location.assign("/home");
+      // location.assign("/home");
     } catch (error) {
       setError(error);
       setLoading(false);
@@ -84,13 +84,13 @@ export default function Login() {
               </Button>
             </Form.Item>
 
-            <Button
+            {/* <Button
               href="/reset"
               // style={{ color: "red", marginLeft: "160px" }}
               className="text-red right-0 lg:ms-56 sm:ms-0"
             >
               Reset password
-            </Button>
+            </Button> */}
           </div>
           <p className="text-gray-600 text-xs">
             You do not have an account{" "}

@@ -10,6 +10,7 @@ import {
   HeartOutlined,
 } from "@ant-design/icons";
 import "../style/articles.module.css";
+import { AuthContext } from "./AuthePrivder";
 
 export default function Article() {
   const [articles, setArticles] = useState([]);
@@ -49,7 +50,7 @@ export default function Article() {
   };
 
   useEffect(() => {
-    console.log(import.meta.env.VITE_Auth_ClientId);
+    // console.log(import.meta.env.VITE_Auth_ClientId);
     fetchArticles();
   }, []);
 

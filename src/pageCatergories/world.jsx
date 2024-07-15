@@ -11,16 +11,72 @@ import {
   HeartOutlined,
 } from "@ant-design/icons";
 import style from "../style/Signup.module.css";
+import { AuthContext } from "../Page/AuthePrivder";
 
 export default function World() {
   const [articles, setArticles] = useState([]);
   const [showUpgrade, setShowUpgrade] = useState(false);
   // const [selectCategory, setSelectCategory] = useState("world");
-  const [role, setRole] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [dollar, setDollar] = useState(false);
+  const { user } = useContext(AuthContext);
   const [form] = Form.useForm();
+  useEffect(() => {
+    const fetchArticles = async (category) => {
+      // const token = localStorage.getItem("token");
+      setLoading(true);
+      try {
+        const res = await axios.get(`/articles?category=${category}`, {
+          withCredentials: true,
+          // headers: { Authorization: `Bearer ${token}` },
+        });
+        setArticles(res.data);
+        setError(null);
+      } catch (error) {
+        setError(error);
+        if (error.response && error.response.status === 401) {
+          Modal.error({
+            content: "Accès non autorisé. Veuillez vous reconnecter.",
+          });
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchArticles("world");
+  }, []);
+
+  const handleUpgrade = async () => {
+    // const token = localStorage.getItem("token");
+    setDollar(true);
+    setShowUpgrade(false);
+    try {
+      const res = await axios.post(
+        "/devenir-admin",
+        {},
+        { withCredentials: true }
+        // {
+        //   headers: { authorization: `Bearer ${token}` },
+        // }
+      );
+      setShowUpgrade(false);
+    } catch (error) {
+      // Modal.error({
+      //   content: "Upgrade failed. Please try again.",
+      // });
+    }
+  };
+  // const isRole = async () => {
+  // try {
+  //   const res = await axios.get("/userL", { withCredentials: true });
+  //   setRole(res.data.role[0]);
+  //   console.log(res.data);
+  // } catch (error) {
+  //   console.log(error);
+  // }
+  // };
+
   const fetchArticles = async (category) => {
     // const token = localStorage.getItem("token");
     setLoading(true);
@@ -43,50 +99,9 @@ export default function World() {
     }
   };
 
-  const handleUpgrade = async () => {
-    // const token = localStorage.getItem("token");
-    setDollar(true);
-    setShowUpgrade(false);
-    try {
-      const res = await axios.post(
-        "/devenir-admin",
-        {},
-        { withCredentials: true }
-        // {
-        //   headers: { authorization: `Bearer ${token}` },
-        // }
-      );
-      console.log(res.data);
-      setShowUpgrade(false);
-    } catch (error) {
-      // Modal.error({
-      //   content: "Upgrade failed. Please try again.",
-      // });
-    }
-  };
-  const isRole = async () => {
-    // const token = localStorage.getItem("token");
-    try {
-      const res = await axios.get(
-        "/userL",
-        { withCredentials: true },
-        {
-          // headers: { authorization: `Bearer ${token}` },
-        }
-      );
-      setRole(res.data.role[0]);
-      console.log(res.data.role[0]);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  useEffect(() => {
-    isRole();
-  });
-
   const handleClickMenu = async (e) => {
     const category = e.key;
+    const role = user.role;
 
     // setSelectCategory(category);
 
@@ -95,8 +110,8 @@ export default function World() {
     } else {
       setError(null);
       setShowUpgrade(false);
-      console.log("deja admi");
-      console.log(category);
+      // console.log("deja admi");
+      // console.log(category);
       await fetchArticles(category);
     }
   };
@@ -105,11 +120,14 @@ export default function World() {
       const response = await axios.post("/payment", value, {
         withCredentials: true,
       });
-
-      console.log(response.data);
-      fetchArticles("world");
-      Modal.success({ content: "Payment Reussir" });
-      form.resetFields();
+      console.log(response.data.results);
+      if (response.data.results) {
+        setDollar(false);
+        fetchArticles("world");
+        Modal.success({ content: "Payment Reussir" });
+        form.resetFields();
+        window.location.reload();
+      }
     } catch (error) {
       Modal.error({ content: "Payment Failed" });
     }
@@ -247,9 +265,7 @@ export default function World() {
           title="UPGRADE YOUR PLAN"
           visible={dollar}
           onCancel={() => setDollar(false)}
-          onOk={() => {
-            setDollar(false);
-          }}
+          footer={null}
         >
           <Form onFinish={payment} className="m-5 " form={form}>
             <Form.Item
@@ -291,6 +307,12 @@ export default function World() {
             >
               <Input />
             </Form.Item>
+            <Form.Item>
+              <Button htmlType="submit" type="primary">
+                {" "}
+                paye{" "}
+              </Button>
+            </Form.Item>
           </Form>
         </Modal>
       )}
@@ -314,8 +336,8 @@ export default function World() {
                   cover={
                     article.multimedia && article.multimedia.length > 0 ? (
                       <img
-                        alt={article.multimedia[0].caption}
-                        src={article.multimedia[0].url}
+                        alt={article?.multimedia[0].caption}
+                        src={article?.multimedia[0].url}
                         style={{
                           width: "100%",
                           height: "200px",
@@ -334,15 +356,15 @@ export default function World() {
                     }}
                   >
                     <div>
-                      <h3>{article.title}</h3>
-                      <p>{article.abstract}</p>
+                      <h3>{article?.title}</h3>
+                      <p>{article?.abstract}</p>
                     </div>
                     <div>
                       <p>
-                        <em>{article.byline}</em>
+                        <em>{article?.byline}</em>
                       </p>
                       <a
-                        href={article.url}
+                        href={article?.url}
                         target="_blank"
                         rel="noopener noreferrer"
                       >

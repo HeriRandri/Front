@@ -23,6 +23,9 @@ export default function Navbar() {
     await logout();
   };
 
+  // const userLog = user.email;
+  // console.log(userLog);
+
   const menuItems = isLoggedIn
     ? [
         {
@@ -31,6 +34,12 @@ export default function Navbar() {
           icon: <LoginOutlined />,
           onClick: handleLogout,
         },
+        // {
+        //   key: "user",
+        //   label: `${userLog}`,
+        //   icon: <UserOutlined />,
+        //   onclick: () => {},
+        // },
       ]
     : [
         { key: "home", label: "Home", icon: <HomeOutlined />, link: "/" },
@@ -83,7 +92,7 @@ export default function Navbar() {
           ) : (
             <div className="sm:w-5 lg:w-40 md:w-8">
               <Menu.Item key={item.key} icon={item.icon}>
-                <a href={item.link} style={{ color: "red" }}>
+                <a href={item?.link} style={{ color: "red" }}>
                   {item.label}
                 </a>
               </Menu.Item>
