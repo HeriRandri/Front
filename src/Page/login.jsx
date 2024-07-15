@@ -5,7 +5,7 @@ import { AuthContext } from "./AuthePrivder";
 import { useAuth0 } from "@auth0/auth0-react";
 
 export default function Login() {
-  axios.defaults.baseURL = "https://backfichier.onrender.com/";
+  axios.defaults.baseURL = "https://backfichier.onrender.com";
 
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);

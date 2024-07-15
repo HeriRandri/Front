@@ -5,7 +5,7 @@ import { Modal } from "antd";
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  axios.defaults.baseURL = "https://backfichier.onrender.com/";
+  axios.defaults.baseURL = "https://backfichier.onrender.com";
 
   const [user, setUser] = useState(null);
 
