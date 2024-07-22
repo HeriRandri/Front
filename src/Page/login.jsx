@@ -2,7 +2,7 @@ import { Button, Form, Input, Modal, Spin, Anchor } from "antd";
 import axios from "axios";
 import { useContext, useState } from "react";
 import { AuthContext } from "./AuthePrivder";
-import { useAuth0 } from "@auth0/auth0-react";
+// import { useAuth0 } from "@auth0/auth0-react";
 
 export default function Login() {
   axios.defaults.baseURL = "https://backfichier.onrender.com";
@@ -10,7 +10,7 @@ export default function Login() {
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [load, setLoad] = useState(false);
-  const { loginWithRedirect, isAuthenticated } = useAuth0();
+  // const { loginWithRedirect, isAuthenticated } = useAuth0();
 
   const [error, setError] = useState(null);
   const [form] = Form.useForm();
@@ -52,15 +52,14 @@ export default function Login() {
         <h2 className="text-center underline uppercase text-3xl">
           Google New Featuring
         </h2>
-        {!isAuthenticated && (
-          <Button
-            style={{ backgroundColor: "black", color: "white" }}
-            className="p-1 h-10 w-52"
-            onClick={() => setShowModal(true)}
-          >
-            Sign In
-          </Button>
-        )}
+
+        <Button
+          style={{ backgroundColor: "black", color: "white" }}
+          className="p-1 h-10 w-52"
+          onClick={() => setShowModal(true)}
+        >
+          Sign In
+        </Button>
       </div>
 
       <Modal

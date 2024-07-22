@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect } from "react";
+import { createContext, useState } from "react";
 import axios from "axios";
 import { Modal } from "antd";
 
@@ -9,16 +9,16 @@ export const AuthProvider = ({ children }) => {
 
   const [user, setUser] = useState(null);
 
-  useEffect(() => {
-    axios
-      .get("/check-auth", { withCredentials: true })
-      .then((response) => {
-        setUser(response.data.user);
-      })
-      .catch(() => {
-        setUser(null);
-      });
-  }, []);
+  // useEffect(() => {
+  //   axios
+  //     .get("/check-auth", { withCredentials: true })
+  //     .then((response) => {
+  //       setUser(response.data.user);
+  //     })
+  //     .catch(() => {
+  //       setUser(null);
+  //     });
+  // }, []);
 
   const login = async (email, password) => {
     try {
@@ -29,6 +29,7 @@ export const AuthProvider = ({ children }) => {
       );
 
       if (response.data.auth) {
+        localStorage.setItem(response.data.token);
         setUser(response.data.user);
         Modal.success({ content: "Login successful" });
         location.assign("/home");

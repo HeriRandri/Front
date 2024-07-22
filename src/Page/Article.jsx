@@ -18,13 +18,13 @@ export default function Article() {
   const [loading, setLoading] = useState(false);
 
   const fetchArticles = async () => {
-    // const token = localStorage.getItem("token");
+    const token = localStorage.getItem("token");
 
     setLoading(true);
     try {
       const res = await axios.get(`/articles?category=home`, {
         withCredentials: true,
-        // headers: { authorization: `Bearer ${token}` },
+        headers: { authorization: `Bearer ${token}` },
       });
 
       setArticles(res.data);
