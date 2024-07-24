@@ -5,7 +5,8 @@ import { AuthContext } from "./AuthePrivder";
 // import { useAuth0 } from "@auth0/auth0-react";
 
 export default function Login() {
-  axios.defaults.baseURL = "https://backfichier.onrender.com";
+  // axios.defaults.baseURL = "https://backfichier.onrender.com";
+  axios.defaults.baseURL = "http://localhost:4000";
 
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -14,29 +15,29 @@ export default function Login() {
 
   const [error, setError] = useState(null);
   const [form] = Form.useForm();
-  const { login } = useContext(AuthContext);
+  // const { login } = useContext(AuthContext);
 
   const handleLogin = async (values) => {
     setLoading(true);
     setLoad(true);
     try {
-      // const response = await axios.post("/login", values, {
-      //   withCredentials: true,
-      // });
-      // if (response.data.auth) {
-      //   localStorage.setItem("token", response.data.jsonwebtoken);
-      //   console.log(response.data.jsonwebtoken);
-      //   Modal.success({ content: "Login suuccessfully" });
+      const response = await axios.post("/login", values, {
+        withCredentials: true,
+      });
+      if (response.data.auth) {
+        localStorage.setItem("token", response.data.token);
+        console.log(response.data.token);
+        Modal.success({ content: "Login suuccessfully" });
 
-      //   location.assign("/home");
-      // }
-      // setError(null);
-      await login(values.email, values.password);
-      setLoading(false);
+        location.assign("/home");
+      }
+      setError(null);
+      // await login(values.email, values.password);
+      // setLoading(false);
 
       setError(null);
       setLoad(false);
-      // location.assign("/home");
+      location.assign("/home");
     } catch (error) {
       setError(error);
       setLoading(false);

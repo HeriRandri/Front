@@ -15,6 +15,7 @@
     "@uidotdev/usehooks": "^2.4.1",
     "antd": "^5.17.4",
     "axios": "^1.7.2",
+    "feather-icons-react": "^0.7.0",
     "jwt-decode": "^4.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

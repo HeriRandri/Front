@@ -18,12 +18,12 @@ export default function Tech() {
 
   useEffect(() => {
     const fetchArticles = async () => {
-      // const token = localStorage.getItem("token");
+      const token = localStorage.getItem("token");
       setLoading(true);
       try {
         const res = await axios.get(`/articles?category=technology`, {
           withCredentials: true,
-          // headers: { Authorization: `Bearer ${token}` },
+          headers: { authorization: `Bearer ${token}` },
         });
         setArticles(res.data);
 

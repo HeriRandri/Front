@@ -12,15 +12,18 @@ import { AuthContext } from "./AuthePrivder";
 
 export default function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const { user, logout } = useContext(AuthContext);
+  // const { user, logout } = useContext(AuthContext);
   const [visible, setVisible] = useState(false);
 
+  const token = localStorage.getItem("token");
   useEffect(() => {
-    setIsLoggedIn(!!user);
-  }, [user]);
+    setIsLoggedIn(!!token);
+  }, [token]);
 
   const handleLogout = async () => {
-    await logout();
+    // await logout();
+    localStorage.removeItem("token");
+    location.assign("/login");
   };
 
   // const userLog = user.email;

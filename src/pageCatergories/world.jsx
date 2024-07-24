@@ -11,7 +11,6 @@ import {
   HeartOutlined,
 } from "@ant-design/icons";
 import style from "../style/Signup.module.css";
-import { AuthContext } from "../Page/AuthePrivder";
 
 export default function World() {
   const [articles, setArticles] = useState([]);
@@ -20,45 +19,26 @@ export default function World() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [dollar, setDollar] = useState(false);
-  const { user } = useContext(AuthContext);
+  const [role, setRole] = useState("");
+
   const [form] = Form.useForm();
   useEffect(() => {
-    const fetchArticles = async (category) => {
-      // const token = localStorage.getItem("token");
-      setLoading(true);
-      try {
-        const res = await axios.get(`/articles?category=${category}`, {
-          withCredentials: true,
-          // headers: { Authorization: `Bearer ${token}` },
-        });
-        setArticles(res.data);
-        setError(null);
-      } catch (error) {
-        setError(error);
-        if (error.response && error.response.status === 401) {
-          Modal.error({
-            content: "Accès non autorisé. Veuillez vous reconnecter.",
-          });
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchArticles("world");
+    isRole();
   }, []);
 
   const handleUpgrade = async () => {
-    // const token = localStorage.getItem("token");
+    const token = localStorage.getItem("token");
     setDollar(true);
     setShowUpgrade(false);
     try {
       const res = await axios.post(
         "/devenir-admin",
         {},
-        { withCredentials: true }
-        // {
-        //   headers: { authorization: `Bearer ${token}` },
-        // }
+        {
+          withCredentials: true,
+
+          headers: { authorization: `Bearer ${token}` },
+        }
       );
       setShowUpgrade(false);
     } catch (error) {
@@ -67,23 +47,28 @@ export default function World() {
       // });
     }
   };
-  // const isRole = async () => {
-  // try {
-  //   const res = await axios.get("/userL", { withCredentials: true });
-  //   setRole(res.data.role[0]);
-  //   console.log(res.data);
-  // } catch (error) {
-  //   console.log(error);
-  // }
-  // };
+  const isRole = async () => {
+    const token = localStorage.getItem("token");
+
+    try {
+      const res = await axios.get("/userL", {
+        withCredentials: true,
+        headers: { authorization: `Bearer ${token}` },
+      });
+      setRole(res.data.role[0]);
+      console.log(res.data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   const fetchArticles = async (category) => {
-    // const token = localStorage.getItem("token");
+    const token = localStorage.getItem("token");
     setLoading(true);
     try {
       const res = await axios.get(`/articles?category=${category}`, {
         withCredentials: true,
-        // headers: { Authorization: `Bearer ${token}` },
+        headers: { authorization: `Bearer ${token}` },
       });
       setArticles(res.data);
       setError(null);
@@ -101,7 +86,7 @@ export default function World() {
 
   const handleClickMenu = async (e) => {
     const category = e.key;
-    const role = user.role;
+    console.log(role);
 
     // setSelectCategory(category);
 

@@ -18,12 +18,12 @@ export default function Science() {
 
   useEffect(() => {
     const fetchArticles = async () => {
-      // const token = localStorage.getItem("token");
+      const token = localStorage.getItem("token");
       setLoading(true);
       try {
         const res = await axios.get(`/articles?category=science`, {
           withCredentials: true,
-          // headers: { Authorization: `Bearer ${token}` },
+          headers: { authorization: `Bearer ${token}` },
         });
         setArticles(res.data);
         setError(null);

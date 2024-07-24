@@ -10,7 +10,6 @@ import {
   HeartOutlined,
 } from "@ant-design/icons";
 import "../style/articles.module.css";
-import { AuthContext } from "./AuthePrivder";
 
 export default function Article() {
   const [articles, setArticles] = useState([]);
@@ -29,28 +28,26 @@ export default function Article() {
 
       setArticles(res.data);
       setError(null);
+      console.log(res.data);
     } catch (error) {
-      console.error(error);
-      if (error.response && error.response.status === 401) {
-        setError(error);
-        setLoading(false);
-        // Modal.error({
-        //   content: "Accès non autorisé. Veuillez vous reconnecter.",
-        // });
-      } else if (error.response && error.response.status === 500) {
-        setError(error);
-        setLoading(false);
-        // Modal.error({
-        //   content: "Internal Server Error",
-        // });
-      }
+      handleError(error);
     } finally {
       setLoading(false);
     }
   };
 
+  const handleError = (error) => {
+    console.error(error);
+    if (error.response && error.response.status === 401) {
+      setError({ message: "Accès non autorisé. Veuillez vous reconnecter." });
+    } else if (error.response && error.response.status === 500) {
+      setError({ message: "Internal Server Error" });
+    } else {
+      setError({ message: "An unexpected error occurred" });
+    }
+  };
+
   useEffect(() => {
-    // console.log(import.meta.env.VITE_Auth_ClientId);
     fetchArticles();
   }, []);
 
@@ -84,29 +81,14 @@ export default function Article() {
         <Menu
           mode="horizontal"
           style={{ display: "flex", justifyContent: "center" }}
-          // onClick={handleMenuClick}
         >
           {menuItems.map((item) => (
             <Menu.Item key={item.key} icon={item.icon}>
               <a href={item.link}>{item.label}</a>
-              {/* <NavLink to={item.link}>{item.label}</NavLink> */}
             </Menu.Item>
           ))}
         </Menu>
       </nav>
-      {/* {showUpgrade && (
-        <Modal
-          title="upgrade_vip"
-          visible={showUpgrade}
-          onOk={handleUpgrade}
-          onCancel={() => setShowUpgrade(false)}
-        >
-          <p>To access World and Health categories, please upgrade to VIP.</p>
-          <Button type="primary" onClick={handleUpgrade}>
-            Upgrade to VIP
-          </Button>
-        </Modal>
-      )} */}
       <div className="container mt-10 max-w-7xl mx-auto">
         {loading ? (
           <div className="spin_container flex justify-center items-center h-80">
@@ -114,9 +96,7 @@ export default function Article() {
           </div>
         ) : error ? (
           <div className="error_container flex justify-center items-center h-80">
-            <p className="text-red-800 text-3xl font-bold                                  ">
-              {error.message}
-            </p>
+            <p className="text-red-800 text-3xl font-bold">{error.message}</p>
           </div>
         ) : (
           <Row gutter={[16, 16]}>
