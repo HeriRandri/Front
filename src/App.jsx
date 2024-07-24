@@ -16,8 +16,8 @@ import Reset from "./Page/Reset";
 import "./App.css";
 import LoginTest from "./PageTest/LoginTest";
 
-// axios.defaults.baseURL = "https://backfichier.onrender.com";
-axios.defaults.baseURL = "http://localhost:4000";
+axios.defaults.baseURL = "https://backfichier.onrender.com";
+// axios.defaults.baseURL = "http://localhost:4000";
 axios.defaults.withCredentials = true;
 function App() {
   const [isNav, setIsNav] = useState(false);

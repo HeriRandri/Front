@@ -4,8 +4,8 @@ import { useState } from "react";
 import axios from "axios";
 
 const Sign_up = () => {
-  // axios.defaults.baseURL = "https://backfichier.onrender.com";
-  axios.defaults.baseURL = "http://localhost:4000";
+  axios.defaults.baseURL = "https://backfichier.onrender.com";
+  // axios.defaults.baseURL = "http://localhost:4000";
 
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
